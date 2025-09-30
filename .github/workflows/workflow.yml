@@ -4,35 +4,28 @@ on: [push, pull_request]
 
 jobs:
   build_linux:
-    name: Build wheels on Linux
+    name: Build wheels on ${{ matrix.os }}
     runs-on: ubuntu_latest
+    strategy:
+      matrix:
+        # macos-15-intel is an Intel runner, macos-14 is Apple silicon
+        os: [ubuntu-latest,  windows-latest]
 
     steps:
       - uses: actions/checkout@v5
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v3.2.0
-        env:
-          CIBW_BUILD: "cp*amd64"
+        # env:
+        #   CIBW_BUILD: "cp*x86_64,cp*amd64"
+        #   CIBW_SOME_OPTION: value
+        #   ...
+        # with:
+        #   package-dir: .
+        #   output-dir: wheelhouse
+        #   config-file: "{package}/pyproject.toml"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: cibw-wheels-linux
-          path: ./wheelhouse/*.whl
-
-  build_windows:
-    name: Build wheels on Windows
-    runs-on: ubuntu_latest
-
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Build wheels
-        uses: pypa/cibuildwheel@v3.2.0
-        env:
-          CIBW_BUILD: "cp*x86_64"
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: cibw-wheels-windows
+          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
           path: ./wheelhouse/*.whl
